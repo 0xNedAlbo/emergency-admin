@@ -15,14 +15,14 @@ contract CallTarget {
         wasCalled = false;
     }
 
-    function testCallSuccess(uint256 testData) public returns (uint256) {
+    function callSuccess(uint256 testData) public returns (uint256) {
         data = testData;
         wasCalled = true;
         caller = msg.sender;
         return testData;
     }
 
-    function testCallFailure(uint256) public pure returns (uint256) {
+    function callFailure(uint256) public pure returns (uint256) {
         revert("failed");
     }
 }
@@ -32,7 +32,7 @@ contract emergencyCallTest is EmergencyAdminTest {
         CallTarget target = new CallTarget();
 
         bytes memory testData = abi.encodeWithSelector(
-            CallTarget.testCallSuccess.selector,
+            CallTarget.callSuccess.selector,
             256
         );
         vm.prank(admin);
@@ -55,15 +55,14 @@ contract emergencyCallTest is EmergencyAdminTest {
         CallTarget target = new CallTarget();
 
         bytes memory testData = abi.encodeWithSelector(
-            CallTarget.testCallFailure.selector,
+            CallTarget.callFailure.selector,
             256
         );
         vm.prank(admin);
-        (bool success, bytes memory returnData) = testInstance.emergencyCall(
+        (bool success, ) = testInstance.emergencyCall(
             address(target),
             testData
         );
-        emit log_bytes(returnData);
         assertTrue(!success, "did not return 'success=false'");
         assertTrue(!target.wasCalled(), "target was called");
         assertTrue(target.data() != 256, "target data was set");
